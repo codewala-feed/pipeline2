@@ -1,0 +1,24 @@
+appName: pipeline1
+
+replicasCnt: 3
+
+image:
+  repository: nikhilpokuri/pipeline1
+  tag: 1.0
+  pullPolicy: IfNotPresent
+
+containerPort: 5000
+
+config:
+  env:
+    APP_ENV: dev
+
+service:
+  name: pipeline1-service
+  type: NodePort
+  port: 80
+  targetPort: 5000
+  nodePort: 30003
+
+hpa:
+  targetCpuUtilizationPercentage: 50

@@ -1,0 +1,8 @@
+apiVersion: v2
+type: application
+
+name: pipeCharts
+description: This is pipeline1 Helm-charts
+
+version: "1.0"
+appVersion: "1.0.1"

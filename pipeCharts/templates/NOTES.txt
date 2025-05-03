@@ -1,0 +1,15 @@
+This Flask app is up and Running :)
+
+Access it Externally(if using NodePort):
+  1. Get Node Ip:
+    - If using minikube:
+      minikube ip
+    
+    - otherwise:
+      kubectl get nodes -o wide
+
+  2. Get Node Port
+     kubectl get svc {{ .Values.service.name }} -o 
+
+  3. Access the app in your browser
+     https://<node-ip>:<node-port>
