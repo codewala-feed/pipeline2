@@ -3,7 +3,7 @@ pipeline{
     environment{
         GIT_REPO: "https://github.com/codewala-feed/pipeline2.git"
         IMAGE_NAME: "pipeline2"
-        IMAGE_TAG: "3.0"
+        IMAGE_TAG: "4.0"
         REGISTRY: "nikhilpokuri"
         KUBE_CONTEXT: "minikube"
     }
