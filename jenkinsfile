@@ -1,50 +1,47 @@
-pipeline {
+pipeline{
     agent any
-
-    environment {
-        IMAGE_NAME = "nikhilpokuri/pipeline2"
-        IMAGE_TAG = "1.0"
+    environment{
+        GIT_REPO: "https://github.com/codewala-feed/pipeline2.git"
+        IMAGE_NAME: "pipeline2"
+        IMAGE_TAG: "3.0"
+        REGISTRY: "nikhilpokuri"
+        KUBE_CONTEXT: "minikube"
     }
 
-    stages {
-        stage('Clone Repo') {
-            steps {
-                sh '''
-                git clone https://github.com/nikhilpokuri/pipeline2.git
-                cd pipeline2
-                '''
+    stages{
+        stage('Cloning Repo'){
+            steps{
+                git url:'${GIT_REPO}', branch: 'main'
             }
         }
-
-        stage('Build Docker Image') {
-            steps {
-                sh '''
-                cd pipeline2
-                docker build -t $IMAGE_NAME:$IMAGE_TAG .
-                '''
-            }
+        stage('Install Dependencies'){
+            sh '''
+                python3 -m venv myenv
+                . myenv/bin/activate
+                
+                echo "Installing dependencies from requiements.txt"
+                pip install -r --no-cache-dir src/requirements.txt
+            '''
         }
-
-        stage('Login & Push Docker Image') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh '''
-                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                    docker push $IMAGE_NAME:$IMAGE_TAG
-                    '''
+        stage('Build DockerImage'){
+            sh '''
+                echo "Docker Image is getting Build"
+                docker build -t ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} .
+            '''
+        }
+        stage('Push DockerImage'){
+            sh '''
+                withCredentials([usernamePassword(credentialsId:'docker-creds', usernameVariable:'DOCKER_USER', passwordVariable:'DOKER_PASS')]){
+                    echo "${DOCKER_PASS}" | docker login -u ${DOCKER_USER} --password-stdin
+                    docker push ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
                 }
-            }
+                echo "${DOCKER_IMAGE} has been pushed"
+            '''
         }
-
-        stage('Deploy with Helm') {
-            steps {
-                sh '''
-                cd pipeline2
-                helm upgrade --install pipeline2 ./pipeCharts \
-                  --set image.repository=$IMAGE_NAME \
-                  --set image.tag=$IMAGE_TAG
-                '''
-            }
+        stage('Deployment With Helm'){
+            sh '''
+                helm upgrade --install ${IMAGE_NAME} ./pipeCharts --kube-context ${KUBE_CONTEXT}
+            '''
         }
     }
 }
